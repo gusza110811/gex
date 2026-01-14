@@ -293,8 +293,9 @@ class UI:
             def insertionMode():
                 while True:
                     inp = input(";")
-                    if inp == "":
+                    if inp == ".":
                         break
+                    self.recentLine += 1
                     editor.insertLine(self.recentLine, inp)
 
             if   command == "+": # insert
@@ -368,7 +369,7 @@ class UI:
 
                 print(f"{len(editor.buffer)} lines")
 
-                print(f"Recent line: {self.recentLine+1 if self.recentLine>=0 else '(none)'}")
+                print(f"Editing line{self.recentLine+1 if self.recentLine>=0 else '(none)'}")
 
             elif command == "q": # quit
                 if editor.dirty:
