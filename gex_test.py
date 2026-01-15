@@ -6,8 +6,8 @@ if __name__ == "__main__":
 
     gex_instance = gex.UI(gex.Editor())
     test_commands = gex.deque([
-        "+0;Hello, World!",".",
-        "+1;This is line 2.",".",
+        "+1;Hello, World!",".",
+        "+2;This is line 2.",".",
         "+.;Modified line 1.",".",
         "s",
         "q", "y"

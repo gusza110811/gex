@@ -16,6 +16,8 @@ class Lexer:
             return self.val
     class LineArg(Arg):
         def __init__(self,line:int,relative:bool,update:bool):
+            if line <= 0 and not relative:
+                raise InputError("Line numbers start at 1")
             self.line = line
             self.relative = relative
             self.update = update
@@ -63,7 +65,7 @@ class Lexer:
             text = "<" + text
         self.primary = text.split(";")[0]
         self.secondary = text[len(self.primary)+1:]
-        self.vals = deque(re.findall(r"^[a-zA-Z\-+<]+|\d*[.,]?\d*-\d*[.,]?\d*|\d+[.,]?\d*|\d*[.,]?\d+|[.,]|[a-zA-Z]+", self.primary)) # the last part is mainly to detect input errors
+        self.vals = deque(re.findall(r"^[a-zA-Z\-+<]|\d*[.,]?\d*-\d*[.,]?\d*|\d+[.,]?|[.,]?\d+|[.,]|.+", self.primary)) # the last part is mainly to detect input errors
         self.command = ""
 
     def getCom(self):
@@ -240,13 +242,13 @@ q
 if __name__ == "__main__":
     expect_success = [
         # test for relative lines, absolute lines, ranges, and defaults
-        "+0;E",
+        "+1;E",
         "+1.;E",
         "+.;E",
         "+.1;E",
-        "-0-1",
+        "-1-2",
         "<.;Replaced current line",
-        "v0-2",
+        "v1-3",
 
         # others
         "V",

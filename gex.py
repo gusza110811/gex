@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/bin/env python3
 import sys
 from editor import Editor
 from parser import Lexer, InputError
@@ -150,7 +150,7 @@ class UI:
 
                 print(f"{len(editor.buffer)} lines")
 
-                print(f"Editing line{self.currentLine+1 if self.currentLine>=0 else '(none)'}")
+                print(f"Editing line {self.currentLine+1 if self.currentLine>=0 else '(none)'}")
 
             elif command == "q": # quit
                 if editor.dirty:
