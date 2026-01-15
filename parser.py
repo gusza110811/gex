@@ -217,7 +217,7 @@ Commands
 -N (or -B-E)
 N;T
 
-to be implemented[
+to be implemented [
 dN B E
 iN B;T
 ]

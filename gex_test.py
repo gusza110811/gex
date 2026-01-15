@@ -1,11 +1,13 @@
 # test gex.py
 
-import gex
+from gex import UI
+from editor import Editor
+from collections import deque
 
 if __name__ == "__main__":
 
-    gex_instance = gex.UI(gex.Editor())
-    test_commands = gex.deque([
+    gex_instance = UI(Editor())
+    test_commands = deque([
         "+1;Hello, World!",".",
         "+2;This is line 2.",".",
         "+.;Modified line 1.",".",
