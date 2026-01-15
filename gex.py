@@ -2,22 +2,27 @@
 import sys
 from editor import Editor
 from parser import Lexer, InputError
+from collections import deque
 
 class UI:
     def __init__(self, editor:Editor):
         self.editor = editor
         self.currentLine = -1
         self.bufferName = None
+        self.running = True
+    
+    def input(self, prompt:str) -> str:
+        return input(prompt)
 
     def main(self):
         editor = self.editor
-        while 1:
+        while self.running:
             if self.currentLine >= 0:
                 print(f"\n\u2552 {self.currentLine+1}\u2502 {editor.getLine(self.currentLine)}")
             else:
                 print("\u2552 ...")
             try:
-                userin = input(f"\u2558\u2550> ")
+                userin = self.input(f"\u2558\u2550> ")
             except KeyboardInterrupt:
                 print("Please use q to exit")
                 continue
@@ -43,7 +48,15 @@ class UI:
             currentLineNor = self.currentLine
 
             for arg in argsR:
-                if isinstance(arg,Lexer.LineArg):
+                if isinstance(arg,Lexer.LineRangeArg):
+                    arg.begin = arg.begin.eval(self.currentLine)
+                    if arg.begin.update:
+                        self.currentLine = arg.begin
+                    arg.end = arg.end.eval(self.currentLine)
+                    if arg.end.update:
+                        self.currentLine = arg.end
+                    args.append((arg.begin,arg.end))
+                elif isinstance(arg,Lexer.LineArg):
                     res = arg.eval(self.currentLine)
                     if arg.update:
                         self.currentLine = res
@@ -59,8 +72,8 @@ class UI:
 
             def insertionMode():
                 while True:
-                    inp = input(";")
-                    if inp == ".":
+                    inp = self.input("; ")
+                    if inp.strip() == ".":
                         break
                     self.currentLine += 1
                     editor.insertLine(self.currentLine, inp)
@@ -69,7 +82,8 @@ class UI:
                 editor.insertLine(line,textarg)
                 insertionMode()
             elif command == "-": # remove
-                editor.removeLine(line)
+                for line in range(args[0][0],args[0][1]+1):
+                    editor.removeLine(line)
                 self.currentLine -= 1
             elif command == "<": # replace
                 editor.replaceLine(line,textarg)
@@ -80,10 +94,10 @@ class UI:
                 for i, line in enumerate(lines):
                     print(f"{format(i+1,f"0{linenummaxlen}")}: {line}")
             elif command == "v": # view
-                lines = editor.getLines(args[0],args[1])
+                lines = editor.getLines(args[0][0],args[0][1])
                 linenummaxlen = len(str(len(lines)))
                 for i, line in enumerate(lines):
-                    print(f"{format(args[0]+i+1,f"0{linenummaxlen}")}: {line}")
+                    print(f"{format(args[0][0]+i+1,f"0{linenummaxlen}")}: {line}")
 
             elif command == "r": # read
                 if editor.dirty:
@@ -91,11 +105,11 @@ class UI:
                     while confirm not in list("yn"):
                         if confirm is not None:
                             print("Please answer y or n")
-                        confirm = input("Current buffer is not saved, discard?(Y/n)")[0].lower()
+                        confirm = self.input("Current buffer is not saved, discard?(Y/n)")[0].lower()
                     if confirm == "n":
                         continue
 
-                name = input("File name (Leave blank for blank file)> ")
+                name = self.input("File name (Leave blank for blank file)> ")
                 if name:
                     try:
                         editor.load(open(name,"rb").read())
@@ -109,9 +123,9 @@ class UI:
                     self.currentLine = -1
             elif command == "w": # write
                 if self.bufferName:
-                    name = input(f"File name to save as (default: {self.bufferName})> ")
+                    name = self.input(f"File name to save as (default: {self.bufferName})> ")
                 else:
-                    name = input("File name to save as> ")
+                    name = self.input("File name to save as> ")
                     if not name:
                         print("Save aborted")
                         continue
@@ -144,11 +158,11 @@ class UI:
                     while confirm not in list("yn"):
                         if confirm is not None:
                             print("Please answer y or n")
-                        confirm = input("Current buffer is not saved, quit anyway?(Y/n)")[0].lower()
+                        confirm = self.input("Current buffer is not saved, quit anyway?(Y/n)")[0].lower()
                     if confirm == "n":
                         continue
                 print("Exiting...")
-                sys.exit(0)
+                self.running = False
 
             if not command in list("+-<r"):
                 self.currentLine = currentLineNor

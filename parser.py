@@ -31,22 +31,15 @@ class Lexer:
             return result
     
     class LineRangeArg(Arg):
-        def __init__(self,begin:Lexer.LineArg,end:Lexer.LineArg,relative:bool):
+        def __init__(self,begin:Lexer.LineArg,end:Lexer.LineArg):
             self.begin = begin
             self.end = end
-            self.relative = relative
         def __repr__(self):
-            return f"LineRangeArg({self.begin},{self.end},{self.relative})"
+            return f"LineRangeArg({self.begin},{self.end})"
         
         def eval(self, recentLine:int):
-            if not self.relative:
-                resultBegin = self.begin - 1
-                resultEnd = self.end - 1
-            else:
-                resultBegin = recentLine + self.begin
-                resultEnd = recentLine + self.end
 
-            return (resultBegin, resultEnd)
+            return (self.begin, self.end)
 
     class Command:
         def __init__(self):
@@ -70,7 +63,7 @@ class Lexer:
             text = "<" + text
         self.primary = text.split(";")[0]
         self.secondary = text[len(self.primary)+1:]
-        self.vals = deque(re.findall(r"\d+\-\d+|\d+[.,]|[.,]\d+|\d+|[a-zA-Z\-\+\<]", self.primary))
+        self.vals = deque(re.findall(r"^[a-zA-Z\-+<]+|\d*[.,]?\d*-\d*[.,]?\d*|\d+[.,]?\d*|\d*[.,]?\d+|[.,]|[a-zA-Z]+", self.primary)) # the last part is mainly to detect input errors
         self.command = ""
 
     def getCom(self):
@@ -83,24 +76,27 @@ class Lexer:
 
         if "-" in self.vals[0]:
             offsets = self.vals.popleft().split("-")
-            val1, val2 = 0, 0
             if offsets[0]:
                 val1 = offsets[0]
                 try:
                     val1 = self.getLineArgSub(val1)
                 except ValueError:
                     raise InputError(f"Expected a number instead of '{val1}'")
+            else:
+                val1 = Lexer.LineArg(0,True,0)
             if offsets[1]:
                 val2 = offsets[1]
                 try:
                     val2 = self.getLineArgSub(val2)
                 except ValueError:
                     raise InputError(f"Expected a number instead of '{val2}'")
-            self.result.args.append(self.LineRangeArg(val1,val2,True))
+            else:
+                val2 = Lexer.LineArg(0,True,0)
+            self.result.args.append(self.LineRangeArg(val1,val2))
         else:
             try:
-                val = self.getLineArg()
-                self.result.args.append(self.LineRangeArg(val,val,False))
+                val = self.getLineArgSub(self.vals.popleft())
+                self.result.args.append(self.LineRangeArg(val,val))
             except IndexError:
                 raise InputError("Not enough parameters")
             except ValueError:
@@ -122,7 +118,7 @@ class Lexer:
                     val2 = int(val2)
                 except ValueError:
                     raise InputError(f"Expected a number instead of '{val2}'")
-            self.result.args.append(self.LineArg(val2-val1,True,True))
+            return self.LineArg(val2-val1,True,True)
         elif "." in val:
             offsets = val.split(".")
             val1, val2 = 0, 0
@@ -138,15 +134,14 @@ class Lexer:
                     val2 = int(val2)
                 except ValueError:
                     raise InputError(f"Expected a number instead of '{val2}'")
-            self.result.args.append(self.LineArg(val2-val1,True,False))
+            return self.LineArg(val2-val1,True,False)
         else:
             val = val
             try:
                 val = int(val)
             except ValueError:
                 raise InputError(f"Expected a number instead of '{val}'")
-            self.result.args.append(self.LineArg(val,False,True))
-
+            return self.LineArg(val,False,True)
 
     def getLineArg(self):
 
@@ -154,7 +149,7 @@ class Lexer:
             raise InputError("Not enough parameters")
 
         val = self.vals.popleft()
-        self.getLineArgSub(val)
+        self.result.args.append(self.getLineArgSub(val))
 
     def getArg(self):
         try:
@@ -244,16 +239,19 @@ q
 # test
 if __name__ == "__main__":
     expect_success = [
-        "+3;Hello World",
-        "-.2",
-        "-3-5",
-        "<5;Replacement Line",
-        "s",
-        "v4",
-        "v2-4",
+        # test for relative lines, absolute lines, ranges, and defaults
+        "+0;E",
+        "+1.;E",
+        "+.;E",
+        "+.1;E",
+        "-0-1",
+        "<.;Replaced current line",
+        "v0-2",
+
+        # others
         "V",
-        "w;output.txt",
-        "r;input.txt",
+        "s",
+        "w",
         "q"
     ]
     expect_failure = [
@@ -261,7 +259,6 @@ if __name__ == "__main__":
         "-A-B",
         "<X;No Number",
         "unknowncmd",
-        "v3-"
     ]
 
     for test in expect_success:
