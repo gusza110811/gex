@@ -1,5 +1,3 @@
-class EditError(Exception):"Error while updating buffer"
-
 class Editor:
     def __init__(self):
         self.buffer:list[bytearray] = [bytearray()]
@@ -43,14 +41,6 @@ class Editor:
             self.buffer.pop(i)
         except IndexError:
             pass
-    
-    def insertChar(self, line:int, char:int, inChars:str):
-        self.dirty = True
-        text = self.buffer[line]
-        if char < text:
-            raise EditError("char index longer than line length")
-        
-        text[char:char] = inChars
 
     def replaceLine(self, i:int, text:str):
         self.padLine(i)

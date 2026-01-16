@@ -2,6 +2,7 @@
 import sys
 from editor import Editor
 from parser import Lexer, InputError
+import argparse
 
 class UI:
     def __init__(self, editor:Editor):
@@ -73,7 +74,7 @@ class UI:
                 if editor.getLine(self.currentLine).strip():
                     self.currentLine += 1
                 while True:
-                    inp = self.input(": ")
+                    inp = self.input("a> ")
                     if inp.rstrip() == ".":
                         self.currentLine -= 1
                         break
@@ -81,7 +82,7 @@ class UI:
                     self.currentLine += 1
             def insertMode():
                 while True:
-                    inp = self.input(": ")
+                    inp = self.input("i> ")
                     if inp.rstrip() == ".":
                         self.currentLine -= 1
                         break
@@ -103,9 +104,11 @@ class UI:
                 else:
                     appendMode()
             elif command == "d": # remove
-                for line in range(args[0][0],args[0][1]+1):
+                start, end = args[0]
+                for line in range(end, start - 1, -1):
                     editor.removeLine(line)
-                self.currentLine -= 1
+                self.currentLine = min(start, len(editor.buffer) - 1)
+
             elif command == "<": # replace/move
                 if textarg:
                     editor.replaceLine(line,textarg)
@@ -139,16 +142,11 @@ class UI:
                     self.bufferName = None
                     self.currentLine = -1
             elif command == "w": # write
-                if self.bufferName:
-                    name = self.input(f"File name to save as (default: {self.bufferName})> ")
-                else:
+                if not self.bufferName:
                     name = self.input("File name to save as> ")
                     if not name:
                         print("Save aborted")
                         continue
-                if not name:
-                    name = self.bufferName
-                else:
                     self.bufferName = name
                 try:
                     with open(self.bufferName,"wb") as f:
@@ -188,4 +186,14 @@ class UI:
 if __name__ == "__main__":
     editor = Editor()
     ui = UI(editor)
+    argParser = argparse.ArgumentParser()
+    argParser.add_argument("file",help="(optional) file to edit",nargs="?",default="")
+
+    args = argParser.parse_args()
+
+    if args.file:
+        editor.load(open(args.file,"rb").read())
+        ui.bufferName = args
+        ui.currentLine = len(editor.buffer)-1
+
     ui.main()

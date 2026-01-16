@@ -65,7 +65,7 @@ class Lexer:
             text = "<" + text
         self.primary = text.split(";")[0]
         self.secondary = text[len(self.primary)+1:]
-        self.vals = deque(re.findall(r"^[a-zA-Z\-+<]|\d*[.,]?\d*-\d*[.,]?\d*|\d+[.,]?|[.,]?\d+|[.,]|.+", self.primary)) # the last part is mainly to detect input errors
+        self.vals = deque(re.findall(r"^[a-zA-Z\-\+<]|\d*[.,]?\d*-\d*[.,]?\d*|\d+[.,]?|[.,]?\d+|[.,]|.+", self.primary)) # the last part is mainly to detect input errors
         self.command = ""
 
     def getCom(self):
@@ -243,22 +243,11 @@ a(N);T
 r(B-E)
 N;T
 
-to be implemented [
--N B E
-+N B;T
-]
-
 s
-vB-E
-V
+v(B-E)
 
 w
 r
-
-uncertain [
-fw;NAME
-fr;NAME
-]
 
 q
 """
