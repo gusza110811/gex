@@ -1,6 +1,6 @@
 class Editor:
     def __init__(self):
-        self.buffer:list[bytearray] = []
+        self.buffer:list[bytearray] = [bytearray()]
         self.dirty = False
     
     def padLine(self, target:int):
@@ -36,6 +36,7 @@ class Editor:
         self.buffer.insert(i, bytearray(text,encoding="utf-8"))
     
     def removeLine(self, i:int):
+        self.dirty = True
         try:
             self.buffer.pop(i)
         except IndexError:

@@ -8,9 +8,10 @@ if __name__ == "__main__":
 
     gex_instance = UI(Editor())
     test_commands = deque([
-        "+1;Hello, World!",".",
-        "+2;This is line 2.",".",
-        "+.;Modified line 1.",".",
+        "+1;Hello, World!",
+        "+2;This was line 2",
+        "+.;inserted at line 2",
+        ";Append mode test",
         "s",
         "q", "y"
     ])
@@ -29,4 +30,4 @@ if __name__ == "__main__":
 
     print("\nFinal buffer state:")
     for i, line in enumerate(gex_instance.editor.getLines()):
-        print(f"{i}: {line}")
+        print(f"{i+1}: {line}")

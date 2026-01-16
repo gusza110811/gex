@@ -60,7 +60,7 @@ class Lexer:
             self.skip = False
         self.result = self.Command()
         if text.startswith(";"):
-            text = "+,1" + text
+            text = "a," + text
         elif text[0] in list(".,0123456789"):
             text = "<" + text
         self.primary = text.split(";")[0]
@@ -184,6 +184,9 @@ class Lexer:
         if com == "+":
             self.getLineArg()
             self.getStrArg()
+        elif com == "a":
+            self.getLineArg()
+            self.getStrArg()
         elif com == "-":
             self.getLineRangeArg()
         elif com == "<":
@@ -249,6 +252,8 @@ if __name__ == "__main__":
         "-1-2",
         "<.;Replaced current line",
         "v1-3",
+        ";Append",
+        "a,;Append"
 
         # others
         "V",

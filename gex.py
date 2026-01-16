@@ -2,12 +2,11 @@
 import sys
 from editor import Editor
 from parser import Lexer, InputError
-from collections import deque
 
 class UI:
     def __init__(self, editor:Editor):
         self.editor = editor
-        self.currentLine = -1
+        self.currentLine = 0
         self.bufferName = None
         self.running = True
     
@@ -49,12 +48,12 @@ class UI:
 
             for arg in argsR:
                 if isinstance(arg,Lexer.LineRangeArg):
-                    arg.begin = arg.begin.eval(self.currentLine)
                     if arg.begin.update:
-                        self.currentLine = arg.begin
-                    arg.end = arg.end.eval(self.currentLine)
+                        self.currentLine = arg.begin.eval(self.currentLine)
+                    arg.begin = arg.begin.eval(self.currentLine)
                     if arg.end.update:
-                        self.currentLine = arg.end
+                        self.currentLine = arg.end.eval(self.currentLine)
+                    arg.end = arg.end.eval(self.currentLine)
                     args.append((arg.begin,arg.end))
                 elif isinstance(arg,Lexer.LineArg):
                     res = arg.eval(self.currentLine)
@@ -70,23 +69,34 @@ class UI:
                 else:
                     line = None
 
-            def insertionMode():
-                while True:
-                    inp = self.input("; ")
-                    if inp.strip() == ".":
-                        break
+            def appendMode():
+                if editor.getLine(self.currentLine).strip():
                     self.currentLine += 1
+                while True:
+                    inp = self.input(": ")
+                    if inp.rstrip() == ".":
+                        break
                     editor.insertLine(self.currentLine, inp)
+                    self.currentLine += 1
 
             if   command == "+": # insert
                 editor.insertLine(line,textarg)
-                insertionMode()
+            elif command == "a":
+                if editor.getLine(line).strip():
+                    line += 1
+                    self.currentLine += 1
+
+                if textarg:
+                    editor.insertLine(line,textarg)
+                else:
+                    appendMode()
             elif command == "-": # remove
                 for line in range(args[0][0],args[0][1]+1):
                     editor.removeLine(line)
                 self.currentLine -= 1
-            elif command == "<": # replace
-                editor.replaceLine(line,textarg)
+            elif command == "<": # replace/move
+                if textarg:
+                    editor.replaceLine(line,textarg)
 
             elif command == "V": # view all
                 lines = editor.getLines()
@@ -164,7 +174,7 @@ class UI:
                 print("Exiting...")
                 self.running = False
 
-            if not command in list("+-<r"):
+            if not command in list("+a-<r"):
                 self.currentLine = currentLineNor
 
 
