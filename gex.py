@@ -71,7 +71,15 @@ class UI:
 
             def appendMode():
                 if editor.getLine(self.currentLine).strip():
-                        self.currentLine += 1
+                    self.currentLine += 1
+                while True:
+                    inp = self.input(": ")
+                    if inp.rstrip() == ".":
+                        self.currentLine -= 1
+                        break
+                    editor.insertLine(self.currentLine, inp)
+                    self.currentLine += 1
+            def insertMode():
                 while True:
                     inp = self.input(": ")
                     if inp.rstrip() == ".":
@@ -81,7 +89,10 @@ class UI:
                     self.currentLine += 1
 
             if   command == "i": # insert
-                editor.insertLine(line,textarg)
+                if textarg:
+                    editor.insertLine(line,textarg)
+                else:
+                    insertMode()
             elif command == "a":
 
                 if textarg:
