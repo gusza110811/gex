@@ -16,7 +16,7 @@ class Lexer:
             return self.val
     class LineArg(Arg):
         def __init__(self,line:int,relative:bool,update:bool):
-            if line <= 0 and not relative:
+            if line < 0 and not relative:
                 raise InputError("Line numbers start at 1")
             self.line = line
             self.relative = relative
@@ -152,6 +152,23 @@ class Lexer:
 
         val = self.vals.popleft()
         self.result.args.append(self.getLineArgSub(val))
+    
+    def getOptionalLineRangeArg(self, default=None):
+        if len(self.vals) == 0:
+            if not default:
+                lineArg = self.LineRangeArg(self.LineArg(0,True,True),self.LineArg(0,True,True))
+            else:
+                lineArg = default
+
+            self.result.args.append(lineArg)
+        else:
+            self.getLineRangeArg()
+
+    def getOptionalLineArg(self):
+        if len(self.vals) == 0:
+            self.result.args.append(self.LineArg(0,True,True))
+        else:
+            self.getLineArg()
 
     def getArg(self):
         try:
@@ -181,31 +198,36 @@ class Lexer:
 
         self.getCom()
         com = self.result.name
-        if com == "+":
-            self.getLineArg()
+        if com == "i":
+            self.getOptionalLineArg()
             self.getStrArg()
         elif com == "a":
-            self.getLineArg()
+            self.getOptionalLineArg()
             self.getStrArg()
-        elif com == "-":
-            self.getLineRangeArg()
+        elif com == "d":
+            self.getOptionalLineRangeArg()
         elif com == "<":
             self.getLineArg()
             self.getStrArg()
-        elif com == "d":
-            self.getLineArg()
+        elif com == "-":
+            self.getOptionalLineArg()
             self.getArg()
             self.getArg()
-        elif com == "i":
-            self.getLineArg()
+        elif com == "+":
+            self.getOptionalLineArg()
             self.getArg()
             self.getStrArg()
         elif com == "v":
-            self.getLineRangeArg()
+            self.getOptionalLineRangeArg(
+                self.LineRangeArg(
+                    self.LineArg(1,False,False),
+                    self.LineArg(0,False,False)
+                )
+            )
         elif com == "f":
             self.getChrArg()
             self.getStrArg()
-        elif com == "s" or com == "V" or com == "w" or com == "r" or com == "q":pass
+        elif com == "s" or com == "w" or com == "r" or com == "q":pass
         else:
             raise InputError(f"Unknown Command: {com}")
 
@@ -216,13 +238,14 @@ class Lexer:
 
 """
 Commands
-+N;T
--N (or -B-E)
+i(N);T
+a(N);T
+r(B-E)
 N;T
 
 to be implemented [
-dN B E
-iN B;T
+-N B E
++N B;T
 ]
 
 s
@@ -244,12 +267,17 @@ q
 # test
 if __name__ == "__main__":
     expect_success = [
+        # optional arg tests
+        "i;insert",
+        "d",
+        "a;append",
+
         # test for relative lines, absolute lines, ranges, and defaults
-        "+1;E",
-        "+1.;E",
-        "+.;E",
-        "+.1;E",
-        "-1-2",
+        "i1;E",
+        "a1.;E",
+        "a.;E",
+        "a.1;E",
+        "d1-2",
         "<.;Replaced current line",
         "v1-3",
         ";Append",
@@ -262,7 +290,6 @@ if __name__ == "__main__":
         "q"
     ]
     expect_failure = [
-        "+;No Line Number",
         "-A-B",
         "<X;No Number",
         "unknowncmd",

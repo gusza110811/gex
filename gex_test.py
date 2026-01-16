@@ -8,10 +8,13 @@ if __name__ == "__main__":
 
     gex_instance = UI(Editor())
     test_commands = deque([
-        "+1;Hello, World!",
-        "+2;This was line 2",
-        "+.;inserted at line 2",
+        "i1;Hello, World!",
+        "i2;This was line 2",
+        "i.;inserted at line 2",
         ";Append mode test",
+        ";",
+        "multiline Append test",
+        ".",
         "s",
         "q", "y"
     ])

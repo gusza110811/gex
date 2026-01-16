@@ -71,26 +71,27 @@ class UI:
 
             def appendMode():
                 if editor.getLine(self.currentLine).strip():
-                    self.currentLine += 1
+                        self.currentLine += 1
                 while True:
                     inp = self.input(": ")
                     if inp.rstrip() == ".":
+                        self.currentLine -= 1
                         break
                     editor.insertLine(self.currentLine, inp)
                     self.currentLine += 1
 
-            if   command == "+": # insert
+            if   command == "i": # insert
                 editor.insertLine(line,textarg)
             elif command == "a":
-                if editor.getLine(line).strip():
-                    line += 1
-                    self.currentLine += 1
 
                 if textarg:
+                    if editor.getLine(line).strip():
+                        line += 1
+                        self.currentLine += 1
                     editor.insertLine(line,textarg)
                 else:
                     appendMode()
-            elif command == "-": # remove
+            elif command == "d": # remove
                 for line in range(args[0][0],args[0][1]+1):
                     editor.removeLine(line)
                 self.currentLine -= 1
@@ -98,11 +99,6 @@ class UI:
                 if textarg:
                     editor.replaceLine(line,textarg)
 
-            elif command == "V": # view all
-                lines = editor.getLines()
-                linenummaxlen = len(str(len(lines)))
-                for i, line in enumerate(lines):
-                    print(f"{format(i+1,f"0{linenummaxlen}")}: {line}")
             elif command == "v": # view
                 lines = editor.getLines(args[0][0],args[0][1])
                 linenummaxlen = len(str(len(lines)))
@@ -174,7 +170,7 @@ class UI:
                 print("Exiting...")
                 self.running = False
 
-            if not command in list("+a-<r"):
+            if not command in list("iad<r"):
                 self.currentLine = currentLineNor
 
 
