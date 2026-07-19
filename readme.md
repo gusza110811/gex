@@ -14,7 +14,7 @@ run gex with an empty buffer
 | `d` | (optional) `line` | delete line at `line` if provided, otherwise at the cursor |
 | (none) | `line` | move cursor to `line` |
 | `s` | (none) | show editor state including buffer name, current line and total lines |
-| `v` | (optional) `line range` | print lines in `line range` if provided, otherwise print the enter file |
+| `v` | (optional) `line range` | print lines in `line range` if provided, otherwise print the entire file |
 | `r` | (none) | read file into buffer, prompt for file name |
 | `w` | (none) | write buffer, prompt for name if buffer is not named |
 | `q` | (none) | quit editor |
